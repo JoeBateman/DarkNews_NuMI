@@ -43,4 +43,40 @@ Once configured, call `. splitHEPevtfile.sh` to move the batched-HEPevt and othe
 
 Unfortunately, getting overlay working is a tad more complicated, and the steps here are more of a work-in-progress.
 
+1. The file `xmls/overlay_darknews.xml` is the template to get started with. 
+    1. You also need to ensure your fcls are where you define them, in this case being `DarkNews_AddOverlay_batch_{LOCAL/TEMPLATE}.fcl`. 
+    2. Make sure the timing information matches the beam your simulation uses, such as global offset! 
+2. The `splitHEPevtfile.sh` script also creates a .tar version of your hepevt files in the same output directory. This is what you'll use as an input for your workflow, and is specified in `<jobsub>` and `tools/unzip_test_script.sh`.
+    1. Make sure the path/names are what you expect!
+3. You'll also need to specify the overlay samdef that you want to use! A few are specified in the xml. 
+    1. You'll probably want a small file, and some useful tutorials to create your own can be found [here](https://microboone-exp.fnal.gov/at_work/AnalysisTools/data/ub_datasets_optfilter.html) and [here](https://cdcvs.fnal.gov/redmine/projects/uboonecode/wiki/Sam#Making-SAM-dataset-definitions-from-existing-dataset-definitions)
+    2. Make sure the EXT you use matches your other configs!
+4. To create the initial overlay file, you use project.py again: `project.py --xml overlay_darknews.xml --stage hepevt_art --submit`
+    1. This only converts your hepevt into an artroot file with overlay, so you need to subsequent stages to do g4 propagation, detector sim, and reconstruction.
+    2. You'll need to run `--check` and/or  `tools/filelist_generator.sh` to create the `files.list` file, and make sure the subsequent stages point to the correct list! This will generally be the name of the previous stage (ie for `reco1`, point to `hepevt_art`, `reco2` looking at `reco1`)
+5. Once `files.list` exists, you can submit `project.py --xml overlay_darknews.xml --stage reco1 --submit` to do the first stage of reconstruction. 
+    1. The filepath to the list should be defined in `<inputlist>`. 
+    1. The specific fcls will depend on whether your using NuMI or BNB, but the stage is shared by WireCell, Pandora and DL reco.
+    1. Again, you will need to run `--check` and/or  `tools/filelist_generator.sh`. For the generator, make sure to specify what stage you're looking to move, and be sure where you're moving the artroot files to!
+6. For `reco2`, your workflow will depend on the reconstruction paradigm you want to use! Currently, WireCell has not been working for me, but pandora reco2 has run without issue
+    1. You may want an additonal `ntuple` stage to convert from artroot to a root file you can use with your analysis. The PeLEE ntuple fcl is very popular, eg `run_neutrinoselectionfilter_run1_data.fcl`.
+    2. To check everything has worked as expected, you may want to use these artroot files to check how your workflow has gone. The steps for this are given in the next section.
 
+
+## Getting an EventDisplay running!
+Event displays are really neat to look at, and they can help you work out whats going right/wrong with your workflow.
+
+I have found David's gallery to be the best of the bunch to get working. You'll need to set up a [VNC](https://sbnsoftware.github.io/sbndcode_wiki/Viewing_events_remotely_with_VNC.html) and clone [David's repo](https://github.com/davidc1/gallery-framework)
+
+Additionally, I define a script to do the following in the Gallery directory:
+
+```
+source config/setup.sh 
+python config/change_ld_library_path.py
+source config/change_ld_library_path.sh
+alias evd='evd.py -T
+```
+
+Once configured, in a new VNC session you should:
+1. Open the terminal and set up `SL7`, `uboonecode`, and call `setup.sh` in the Gallery directory.
+2. Navigate to the location of the artroot file and use `evd *name of your file*.root` to open the event dispaly. I've found that the gallery runs into issues drawing the file if you don't open the file using evd in the terminal (ie using the "select a file" feature instead lead to errors).
