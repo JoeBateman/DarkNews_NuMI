@@ -1,0 +1,16 @@
+# MicroBooNE (Wire-Cell PRD https://arxiv.org/abs/2110.13978)
+name = "microboone_fhc"
+fluxfile = "../source/Fluxes/MicroBooNE_NUMI_FHC_fullflux.txt" # Currently implemented using BNB data for comparison with default implementation
+flux_norm = 1.0/1.0 #for BNB, for NuMI: 1.0/0.01 # units in file are nu/POT/bin/cm2, with bin size 50 MeV.
+erange = [
+    0.05, # 0.01,
+    5
+]
+nuclear_targets = [
+    'Ar40'
+]
+fiducial_mass = 170.0 # tons
+fiducial_mass_per_target = [
+    fiducial_mass
+]
+POTs = 6.8e+20

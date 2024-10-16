@@ -1,0 +1,17 @@
+# MicroBooNE (Exploring Electron-Neutrino– Argon Interactions https://link.springer.com/book/10.1007/978-3-031-19572-3)
+name = "microboone"
+fluxfile = "../source/Fluxes/MicroBooNE_NUMI_RHC_fullflux.txt" # Currently implemented using BNB data for comparison with default implementation
+flux_norm = 1.0/1.0 #for BNB, for NuMI: 1.0/0.01 # units in file are nu/POT/bin/cm2, with bin size 50 MeV.
+erange = [
+    0.05, # 0.01,
+    7 # 5
+]
+
+nuclear_targets = [
+    'Ar40'
+]
+fiducial_mass = 86.1906 # tons, density: 1.3954 g/cm3, vol = 1040*256*232 = 6.176768e7 cm3
+fiducial_mass_per_target = [
+    fiducial_mass
+]
+POTs = 6.8e+20 # for NuMI: 2e20 # Run 1 FHC POT
