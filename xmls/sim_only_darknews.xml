@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+
+<!DOCTYPE project [
+<!ENTITY user_id "jbateman">
+<!ENTITY number_of_jobs "1">
+<!ENTITY number_of_events "10"> 
+<!ENTITY name "darknews_sim_only">
+<!ENTITY release "v08_00_00_84"> 
+<!ENTITY file_type "mc">
+<!ENTITY run_type "physics">
+<!ENTITY tag "darknews_sim">
+<!ENTITY prod_mode "test"> 
+]>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>&number_of_events;</numevents>
+
+  <!-- Operating System -->
+  <os>SL7</os>
+
+  <!-- Batch resources -->
+  <resource>OPPORTUNISTIC,DEDICATED</resource>
+  
+  <!-- Project Version -->
+  <version>&prod_mode;_&release;</version>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e17:prof</qual>
+  </larsoft>
+
+  <check>0</check>
+  <copy>0</copy>
+
+  <!-- Path to where my versions of the fcls are stored - update this path as necessary-->
+  <fcldir>/pnfs/uboone/resilient/users/&user_id;/fcls</fcldir>
+
+  <!-- Project stages -->
+
+  <stage name="genall">
+    <fcl>prod_hepevt_LArTPCActive_v1.0.fcl</fcl>
+    <fcl>wirecell_g4_uboone.fcl</fcl>
+    <fcl>wirecell_detsim_uboone.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_stage1.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_stage2_fullMC.fcl</fcl>
+    
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/genall/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/genall/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/genall/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/genall/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <!--<schema>root</schema>-->
+    <maxfilesperjob>1</maxfilesperjob>
+    <memory>10000</memory> <!-- 6k-->
+  
+    <!-- Input mode is key, tells you what the input to expect, i.e Artroot file usuall-->
+    <inputmode>textfile</inputmode>
+    <inputlist>/pnfs/uboone/persistent/users/&user_id;/production/darknews/HEPevtfile_list/gntp_HEPevt_all_splited_file_10evts.list</inputlist>
+    
+    <!-- Removed paths going to Mark's pnfs area - if this break the xml, add them back! -->
+    <jobsub> --expected-lifetime=medium --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub> <!-- -f /pnfs/uboone/resilient/users/markross/tars/proton_conversion.root -f /pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt -->
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' </jobsub_start> <!-- -f /pnfs/uboone/resilient/users/markross/tars/proton_conversion.root -f /pnfs/uboone/resilient/users/markross/tars/MCC9_channel_list.txt  -->
+  
+  </stage>  
+ 
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>

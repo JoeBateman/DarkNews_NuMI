@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+
+<!DOCTYPE project [
+<!ENTITY user_id "jbateman">
+<!ENTITY number_of_jobs "1">
+<!ENTITY number_of_events "10"> 
+<!ENTITY name "darknews_BNB_run3">
+<!ENTITY release "v08_00_00_84"> 
+<!ENTITY file_type "mc">
+<!ENTITY run_type "physics">
+<!ENTITY tag "darknews_BNB">
+<!ENTITY prod_mode "test"> 
+]>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>&number_of_events;</numevents>
+
+  <!-- Operating System -->
+  <os>SL7</os>
+
+  <!-- Batch resources -->
+  <resource>OPPORTUNISTIC,DEDICATED</resource>
+  
+  <!-- Project Version -->
+  <version>&prod_mode;_&release;</version>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e17:prof</qual>
+  </larsoft>
+
+  <check>0</check>
+  <copy>0</copy>
+
+   <fcldir>/pnfs/uboone/resilient/users/jbateman/fcls</fcldir>
+
+  <!-- Project stages -->
+
+  <!-- First stage, turn HEPevt into artroot, and add overlays -->
+  <stage name="hepevt_art">
+    <initsource>/pnfs/uboone/resilient/users/jbateman/tool_scripts/unzip_test_script.sh</initsource>
+    <!-- inputdef>prod_extunbiased_swizzle_crt_inclusive_v6_v6a_goodruns_mcc9_run3_overlay_bnb_nu_100k</inputdef -->
+    
+    <!-- <inputdef>prod_extunbiased_swizzle_inclusive_v3_goodruns_mcc9_run1_high_lifetime_overlay_eLee_low</inputdef> -->
+    <inputdef>prod_extbnb_swizzle_optfilter_crt_inclusive_v6_G1_jbateman_run3_1files</inputdef> <!-- testing a different EXT unbiased file from run 3b -->
+    <!-- inputdef>prod_extbnb_swizzle_optfilter_crt_inclusive_v6_G2_goodruns_jbateman_100</inputdef --> <!-- testing a different EXT unbiased file from run 3B -->
+
+    <fcl>DarkNews_AddOverlay_batch_LOCAL.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/hepevt_art/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/hepevt_art/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/hepevt_art/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/hepevt_art/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <schema>gsiftp</schema>
+    <maxfilesperjob>1</maxfilesperjob>
+    <numevents>10</numevents>
+    <disk>35GB</disk>
+    <memory>2000</memory> <!-- 2k-->
+    <!--<prestagefraction>0.99</prestagefraction>-->
+    <jobsub> --expected-lifetime=long --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' -f /pnfs/uboone/persistent/users/jbateman/production/darknews/HEPevtfile_list/darknews_bnb_10evts.tar -f /pnfs/uboone/resilient/users/jbateman/fcls/DarkNews_AddOverlay_batch_TEMPLATE.fcl</jobsub>
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' -f /pnfs/uboone/persistent/users/jbateman/production/darknews/HEPevtfile_list/darknews_bnb_10evts.tar -f /pnfs/uboone/resilient/users/jbateman/fcls/DarkNews_AddOverlay_batch_TEMPLATE.fcl</jobsub_start>
+  </stage>  
+
+  <!-- Second stage, do a full-chain simulation to the artroot output from previous stage -->
+  <stage name="genall">
+    <fcl>wirecell_g4_uboone.fcl</fcl>
+    <fcl>wirecell_detsim_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_uboone.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1a.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1b.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1c.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage2.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/genall/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/genall/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/genall/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/genall/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <schema>gsiftp</schema>
+    <maxfilesperjob>1</maxfilesperjob>
+    <disk>25GB</disk>
+    <memory>6000</memory> <!-- 6k-->
+    <jobsub> --expected-lifetime=20h --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' </jobsub>
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start>
+  </stage>  
+ 
+  <!-- Alternate second stage, defining a reco1 that can be input into a WC or Pandora Workflow -->
+  <stage name="reco1">
+    <inputlist>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/hepevt_art/&name;/files.list</inputlist>
+    <!-- Workflow-->
+    <fcl>wirecell_g4_uboone.fcl</fcl>
+    <fcl>wirecell_detsim_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_uboone.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1a.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1b.fcl</fcl>
+    <fcl>standard_larcv_uboone_mctruth_prod.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage1c.fcl</fcl>
+    <!-- Defining where the output is-->
+    <!-- Formely held in genall -->
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/reco1/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/reco1/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/reco1/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/reco1/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <schema>gsiftp</schema>
+    <maxfilesperjob>1</maxfilesperjob>
+    <disk>15GB</disk>
+    <memory>5000</memory> <!-- 6k-->
+    <jobsub> --expected-lifetime=20h --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' </jobsub>
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start>
+  </stage>
+
+  <!-- Pndr workflow -->
+
+  <stage name="pndr_reco2">
+    <inputlist>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/reco1/&name;/files.list</inputlist>
+
+    <!-- Workflow-->
+    <fcl>wirecell_detsim_optical_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_optical_uboone.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_optical.fcl</fcl>
+    <fcl>reco_uboone_mcc9_8_driver_overlay_stage2.fcl</fcl>
+    <fcl>reco_uboone_data_mcc9_1_8_driver_poststage2_filters_Overlay.fcl</fcl>
+    <fcl>standard_larcv_uboone_mc2d_optical_prod.fcl</fcl>
+    <!-- Workflow-->
+
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/pndr_reco2/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/pndr_reco2/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/pndr_reco2/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/pndr_reco2/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <schema>gsiftp</schema>
+    <maxfilesperjob>1</maxfilesperjob>
+    <disk>25GB</disk>
+    <memory>6000</memory> <!-- 6k-->
+    <jobsub> --expected-lifetime=20h --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' </jobsub>
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start>
+  </stage>
+
+
+  <!-- WC reco2 -->
+  <stage name="wc_reco2">
+    <inputlist>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/reco1/&name;/files.list</inputlist>
+    <!-- Workflow-->
+
+    <!--Reco 1.5 -->
+    <!-- <fcl>wirecell_detsim_optical_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_optical_uboone.fcl</fcl>
+    <fcl>
+    run_celltreeub_overlay_port_prod.fcl
+    <endscript>/pnfs/uboone/resilient/users/hanyuwei/WCPport/endscripts/endscript_OverlayWCP_omnibus.sh</endscript>
+    </fcl> -->
+    <!--Reco1.5 -->
+
+    <!-- Reco2 -->
+    
+    <!-- Systematics reweighting - no genie so no genie tweaks possible ?? -->
+    <!-- <fcl>run_eventweight_microboone_sep24.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_1.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_2.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_3.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_4.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_5.fcl</fcl> -->
+    <!-- Systematics reweighting - no genie so no genie tweaks possible ?? -->
+    
+    <!-- <fcl>run_wcphybrid.fcl</fcl>
+    <fcl>
+      run_wcpplus_port.fcl
+      <initsource>/pnfs/uboone/persistent/users/hanyuwei/reco2script/midsource_wcpplus_reco2.sh</initsource>
+    </fcl>
+    <fcl>run_wcpf_port.fcl</fcl>
+    <jobsub>-e WCP_celltree_dataset=Reco1.5_celltree_dataset_samdef</jobsub>
+    <endscript>/pnfs/uboone/persistent/users/hanyuwei/reco2script/endscript_wcpplus_reco2.sh</endscript> -->
+
+    <!-- Reco2 -->
+
+    <!-- Unified Reco2 -->
+    <fcl>wirecell_detsim_optical_overlay_uboone.fcl</fcl>
+    <fcl>standard_overlay_optical_uboone.fcl</fcl>
+    <fcl>
+      run_celltreeub_overlay_port_prod.fcl
+      <endscript>/pnfs/uboone/persistent/users/wgu/unified_reco2_wirecell_overlay.sh</endscript>
+    </fcl>
+    <fcl>
+      run_slimmed_port_overlay.fcl
+      <initsource>/pnfs/uboone/persistent/users/wgu/update_slimmed_port.sh</initsource>
+    </fcl>
+    <fcl>run_wcpplus_port.fcl</fcl>
+    <fcl>
+      run_wcpf_port.fcl
+      <initsource>/pnfs/uboone/persistent/users/wgu/update_wcpf_port.sh</initsource>
+    </fcl>
+    <fcl>run_eventweight_microboone_sep24.fcl</fcl>
+    <!-- <fcl>run_eventweight_microboone_sep24_extragenieall_1.fcl</fcl> 
+    <fcl>run_eventweight_microboone_sep24_extragenieall_2.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_3.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_4.fcl</fcl>
+    <fcl>run_eventweight_microboone_sep24_extragenieall_5.fcl</fcl> -->
+    <fcl>
+      run_wcanatree_overlay.fcl
+      <initsource>/pnfs/uboone/persistent/users/wgu/def_filetype_nu_overlay_run1.sh</initsource>
+    </fcl>
+    <!-- Unified Reco2 -->
+
+    <!-- Defining where the output is-->
+    <outdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/wc_reco2/&name;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/&user_id;/&tag;/&release;/wc_reco2/&name;</logdir>
+    <bookdir>/exp/uboone/data/users/&user_id;/book/&tag;/&release;/wc_reco2/&name;</bookdir>
+    <workdir>/pnfs/uboone/resilient/users/&user_id;/work/&tag;/&release;/wc_reco2/&name;</workdir>
+    <numjobs>&number_of_jobs;</numjobs>
+    <schema>gsiftp</schema>
+    <maxfilesperjob>1</maxfilesperjob>
+    <disk>15GB</disk>
+    <memory>5000</memory> <!-- 6k-->
+    <jobsub> --expected-lifetime=20h --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)' </jobsub>
+    <jobsub_start>   --append_condor_requirements='(TARGET.HAS_CVMFS_uboone_opensciencegrid_org==true)'</jobsub_start>
+  </stage>
+
+
+
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>
