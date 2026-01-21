@@ -1,4 +1,6 @@
-source/
+__pycache__/
 output_files/
 data/
-__pycache__/
+larcv/files/
+larcv/grid/
+source/
